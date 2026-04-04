@@ -15,10 +15,38 @@
 # print(tokens)
 # print(ids)
 
-import json
+# import json
 
-file_name = "vocab.json"
-with open(file_name, 'r') as file:
-    data = json.load(file)
+# file_name = "vocab.json"
+# with open(file_name, 'r') as file:
+#     data = json.load(file)
 
-print(data)
+# print(data)
+
+
+from enum import Enum
+
+
+class D(Enum):
+
+    R_BRC = "{"
+    L_BRC = "}"
+    Q ='"'
+    
+
+    [
+        if token.decode() == R_BRC:
+            output += token
+
+        if output.endswith(R_BRC):
+            output += Q
+            output += fn_name
+            output += Q
+        if output.endswith(Q):
+            output += :
+
+
+            context = "from the given functions {functions} select the best one and return the result as a json format  "
+            result
+            if json.load(result):
+                return result 
