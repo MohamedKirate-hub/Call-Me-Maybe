@@ -23,3 +23,9 @@ and https://medium.com/@abhaysingh71711/gradient-descent-explained-the-engine-be
 NLP: -> towardsdatascience.com/nlp-illustrated-part-1-text-encoding-41ba06c0f512/?source=post_page-----6d718ac40b7d---------------------------------------
 
 -> https://towardsdatascience.com/nlp-illustrated-part-3-word2vec-5b2e12b6a63b/
+
+
+-> Function-Calling with constrained decoding https://www.salmanq.com/blog/llm-constrained-sampling/#
+
+-> mask: https://medium.com/@docherty/controlling-your-llm-deep-dive-into-constrained-generation-1e561c736a20
+
