@@ -29,3 +29,5 @@ NLP: -> towardsdatascience.com/nlp-illustrated-part-1-text-encoding-41ba06c0f512
 
 -> mask: https://medium.com/@docherty/controlling-your-llm-deep-dive-into-constrained-generation-1e561c736a20
 
+-> Books: https://drive.google.com/drive/folders/1jIJMyBOeWiVxLCUUtLvEFEFCnWxbh6cs
+
