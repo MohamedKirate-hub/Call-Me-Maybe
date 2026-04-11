@@ -1,6 +1,7 @@
 import json
 import numpy as np
 from typing import Any
+import os
 
 
 def save_content(self, content: str, file_path: str) -> None:
@@ -21,17 +22,36 @@ def save_content(self, content: str, file_path: str) -> None:
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=2)
     except PermissionError:
-        message = f"[Error]: Permission denied. Cannot write to '{file_path}'."
+        message = f"Permission denied. Cannot write to '{file_path}'."
         raise ValueError(message)
     except FileNotFoundError:
-        message = f"[Error]: The directory for '{file_path}'"
+        message = f"The directory for '{file_path}'"
         message += " does not exist."
+        raise ValueError(message)
+
+
+def file_checker(file_path: str, mode: str):
+    file_modes = {
+        'r': os.R_OK,
+        'w': os.W_OK,
+    }
+    if not file_path:
+        message = "File path is required and cannot be empty."
+        raise ValueError(message)
+
+    if os.path.exists(file_path):
+        message = f"The file {file_path} not available."
+        raise ValueError(message)
+
+    permission = file_modes.get(mode)
+    if os.access(file_path, permission):
+        message = f"The file {file_path} doesn't have {mode} permision."
         raise ValueError(message)
 
 
 def read_file(self, file_path: str) -> Any:
     if not file_path:
-        raise ValueError("[Error]: No file path provided.")
+        raise ValueError("File path is required and cannot be empty.")
 
     with open(file_path, 'r') as file:
         data = file.read()
@@ -40,13 +60,13 @@ def read_file(self, file_path: str) -> Any:
 
 def write_json_file(self, file_path: str, data=None) -> None:
     if not file_path:
-        raise ValueError("[Error]: No file path provided.")
+        raise ValueError("File path is required and cannot be empty.")
 
     if not data:
         raise ValueError(f"Warning: No data provided to write to {file_path}.")
 
     if not file_path.endswith('.json'):
-        message = f"[Error]: Invalid file extension for '{file_path}'."
+        message = f"Invalid file extension for '{file_path}'."
         message += " Only .json is supported."
         raise ValueError(message)
 
@@ -54,11 +74,10 @@ def write_json_file(self, file_path: str, data=None) -> None:
         with (file_path, 'w') as file:
             file.write(data)
     except FileNotFoundError:
-        message = f"[Error]: The directory for '{file_path}'"
-        message += " does not exist."
+        message = f"The directory for '{file_path}' does not exist."
         raise ValueError(message)
     except PermissionError:
-        message = f"[Error]: Permission denied. Cannot write to '{file_path}'."
+        message = f"Permission denied. Cannot write to '{file_path}'."
         raise ValueError(message)
     except Exception as e:
         print(f"An unexpected error occurred: {e}")

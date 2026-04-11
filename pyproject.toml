@@ -1,0 +1,19 @@
+[project]
+name = "call-me-maybe"
+version = "0.1.0"
+description = "function-calling by using qwen's LLM"
+authors = [
+    {name = "mkirate"}
+]
+requires-python = ">=3.10"
+dependencies = [
+    "flake8 (>=7.3.0,<8.0.0)",
+    "uv (>=0.11.6,<0.12.0)",
+    "pydantic (>=2.12.5,<3.0.0)",
+    "mypy (>=1.20.0,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

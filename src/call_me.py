@@ -6,7 +6,7 @@ import numpy as np
 import regex
 
 
-class Predictor:
+class PredictorModel:
     def __init__(self, model_name, file_definition, file_output) -> None:
         self.__model = Small_LLM_Model(model_name)
         self.file_definition = file_definition
@@ -17,6 +17,8 @@ class Predictor:
         self.__re_format += r'\{[^{}]*\})\s*\}$'
 
         self.__regex = regex.compile(self.__re_format)
+        self.__bad_prompts = read_file('./prompt_examples/bad_prompts.txt')
+        self.__good_prompts = read_file('./prompt_examples/good_prompts.txt')
         self.__expected_output = """
         {
         "prompt": "string",
@@ -50,13 +52,13 @@ class Predictor:
         - Output must start with '{' and end with '}'
         """
 
-    def encode(self, prompt) -> List:
+    def encode(self, prompt: str) -> List:
         return self.__model.encode(prompt)
 
     def decode(self, ids: List) -> str:
         return self.__model.decode(ids)
 
-    def predict_next_token(self, prompt) -> float:
+    def predict_next_token(self, prompt: str) -> float:
         self.next_token = 0
         ids = self.__model.encode(prompt)
         logits = self.__model.get_logits_from_input_ids(ids.tolist()[0])
@@ -68,7 +70,7 @@ class Predictor:
         self.next_token = np.argmax(sotmax_logits)
         return self.next_token
 
-    def decode_next_token(self, next_token) -> str:
+    def decode_next_token(self, next_token: float) -> str:
         return self.__model.decode(next_token)
 
     def generate_text(self, prompt: str) -> str:
@@ -102,7 +104,8 @@ class Predictor:
 
     def init_prompt(self, prompt: str) -> str:
         if not prompt:
-            pass
+            message = "Prompt must not be empty!"
+            raise ValueError(message)
 
         model_prompt = f"""
       You are a function-calling JSON generator.
@@ -134,27 +137,11 @@ Output schema (MUST match exactly):
 Rules:
 {self.__rules}
 
-Example:
+Examples with good prompts:
+{self.__good_prompts}
 
-prompt: What is the sum of 2 and 3?
-
-Output:
-{{
-  "prompt": "What is the sum of 2 and 3?",
-  "name": "fn_add_numbers",
-  "parameters": {{
-    "a": 2,
-    "b": 3
-  }}
-}}
-
-prompt: What is 2 divide 2?
-Output:
-{{
-  "prompt": "what is 2 devide 2?",
-  "name": null,
-  "parameters": null
-}}
+Examples with bad prompts:
+{self.__bad_prompts}
 
 Now process this input:
 

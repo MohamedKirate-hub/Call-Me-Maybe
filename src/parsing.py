@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, model_validator
 from typing import Union
 import json
+from utils import file_checker
 
 
 class ParsingFiles(BaseModel):
@@ -10,54 +11,10 @@ class ParsingFiles(BaseModel):
 
     @model_validator(mode='after')
     def check_validation(self) -> 'ParsingFiles':
-        if not self.functions_definition_file:
-            message = "Invalid configuration: 'functions_definition_file' "
-            message += "is required and cannot be empty."
-            raise ValueError(message)
-        try:
-            with open(self.functions_definition_file, 'r'):
-                pass
-        except FileNotFoundError as e:
-            message = f"The file {e.filename} not available."
-            raise ValueError(f"[ERROR]: {message}")
-        except PermissionError as e:
-            message = f"The file {e.filename} doesn't have read permision."
-            raise ValueError(f"[ERROR]: {message}")
-        except Exception as e:
-            raise ValueError(f"[ERROR]: {e}")
-
-        if not self.input_file:
-            message = "Invalid configuration: 'input_file' "
-            message += "is required and cannot be empty."
-            raise ValueError(message)
-        try:
-            with open(self.input_file, 'r'):
-                pass
-        except FileNotFoundError as e:
-            message = f"The file {e.filename} not available."
-            raise ValueError(f"[ERROR]: {message}")
-        except PermissionError as e:
-            message = f"The file {e.filename} doesn't have read permision."
-            raise ValueError(f"[ERROR]: {message}")
-        except Exception as e:
-            raise ValueError(f"[ERROR]: {e}")
-
-        if not self.output_file:
-            message = "Invalid configuration: 'output_file' "
-            message += "is required and cannot be empty."
-            raise ValueError(message)
-        try:
-            with open(self.output_file, 'w'):
-                pass
-        except FileNotFoundError as e:
-            message = f"The file {e.filename} not available."
-            raise ValueError(f"[ERROR]: {message}")
-        except PermissionError as e:
-            message = f"The file {e.filename} doesn't have write permision."
-            raise ValueError(f"[ERROR]: {message}")
-        except Exception as e:
-            raise ValueError(f"[ERROR]: {e}")
-
+        file_checker(self.functions_definition_file, 'w')
+        file_checker(self.input_file, 'w')
+        file_checker(self.output_file, 'r')
+        file_checker(self.output_file, 'w')
         return self
 
 
