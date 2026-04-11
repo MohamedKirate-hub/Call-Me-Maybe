@@ -1,13 +1,12 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Union, Dict
-import json
+from typing import Dict
 
 
-class ParseJsonContent(BaseModel):
+class ParseJsonDefinitionContent(BaseModel):
     json_content: Dict = Field(...)
 
     @model_validator(mode='after')
-    def checker(self) -> 'ParseJsonContent':
+    def checker(self) -> 'ParseJsonDefinitionContent':
 
         valid_keys = ["name", "description", "parameters", "returns"]
         parametrs_type = ["number", "string", "bool"]

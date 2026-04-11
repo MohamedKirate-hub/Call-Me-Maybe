@@ -65,11 +65,6 @@ def write_json_file(self, file_path: str, data=None) -> None:
     if not data:
         raise ValueError(f"Warning: No data provided to write to {file_path}.")
 
-    if not file_path.endswith('.json'):
-        message = f"Invalid file extension for '{file_path}'."
-        message += " Only .json is supported."
-        raise ValueError(message)
-
     try:
         with (file_path, 'w') as file:
             file.write(data)
