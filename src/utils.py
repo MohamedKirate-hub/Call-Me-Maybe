@@ -39,12 +39,12 @@ def file_checker(file_path: str, mode: str):
         message = "File path is required and cannot be empty."
         raise ValueError(message)
 
-    if os.path.exists(file_path):
+    if not os.path.exists(file_path):
         message = f"The file {file_path} not available."
         raise ValueError(message)
 
     permission = file_modes.get(mode)
-    if os.access(file_path, permission):
+    if not os.access(file_path, permission):
         message = f"The file {file_path} doesn't have {mode} permision."
         raise ValueError(message)
 

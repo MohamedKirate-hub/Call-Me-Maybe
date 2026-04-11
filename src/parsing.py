@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Union
+from typing import Union, Dict
 import json
 from utils import file_checker
 
@@ -36,11 +36,31 @@ class ParsingContent:
             return False
 
     def valid_files(self) -> bool:
-        for file_name in self.__files:
-            if not (self.valid_file(file_name)):
+        for file_path in self.__files:
+            if not (self.valid_file(file_path)):
                 return False
         return True
 
 
-def ParsingOutputFile(BaseModel):
-    pass
+class ParseJsonContent(BaseModel):
+    json_content: Dict = Field(...)
+
+    @model_validator(mode='after')
+    def checker(self):
+        valid_keys = ["name", "description", "parameters"]
+        parametrs_type = ["number", "string", "bool"]
+        for key in self.json_content.keys():
+            if key not in valid_keys:
+                messsage = "There are Invalid Key at the file."
+                raise ValueError(messsage)
+        name = self.json_content.get("name", None)
+        description = self.json_content.get("description", None)
+        parameters = self.json_content.get("parameters")
+
+        for key in [name, description, parameters]:
+            if not key or (isinstance(key, str) and not key.strip()):
+                pass
+            if key == "parameters":
+                for k, v in self.json_content[key]:
+                    # checking the types if there are in
+                    pass

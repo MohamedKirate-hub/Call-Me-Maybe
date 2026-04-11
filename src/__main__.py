@@ -1,4 +1,8 @@
 from pydantic import ValidationError
+from get_args import FindArgs
+import os
+
+os.environ['HF_HOME'] = './huggingface_cache'
 
 
 def main() -> None:
