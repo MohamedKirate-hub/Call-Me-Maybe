@@ -35,6 +35,13 @@ class Predictor:
         - Do NOT try to force a function call if the intent does not match.
         - "name" must be a function name from the definition or null.
         - "parameters" must be a dictionary or null.
+        - STRICT RULE: If the user asks for a calculation
+        (like 2-2, 5*5, 2**3,etc.) and there is no EXACT function for
+        that specific math operation, you MUST return "name": null.
+        - Do NOT use 'fn_add_numbers' for subtraction, multiplication,
+        or division.
+        - If a value is missing or no function matches, use null.
+        - Argument types must match the function definition.
         - Numbers must be numeric (not strings)
         - Argument types must match the function definition (number, string,
         boolean, etc.)

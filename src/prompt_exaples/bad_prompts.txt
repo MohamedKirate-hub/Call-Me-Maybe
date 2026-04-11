@@ -1,0 +1,23 @@
+prompt: What is 2 divide 2?
+Output:
+{{
+  "prompt": "what is 2 devide 2?",
+  "name": null,
+  "parameters": null
+}}
+
+prompt: What is 2 - 2?
+Output:
+{{
+  "prompt": "what is 2 - 2?",
+  "name": null,
+  "parameters": null
+}}
+
+prompt: What is 2 ** 2?
+Output:
+{{
+  "prompt": "what is 2 ** 2?",
+  "name": null,
+  "parameters": null
+}}
