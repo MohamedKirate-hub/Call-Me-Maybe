@@ -1,0 +1,78 @@
+import json
+import numpy as np
+from typing import Any
+
+
+def save_content(self, content: str, file_path: str) -> None:
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        if not isinstance(data, list):
+            data = [data]
+    except json.JSONDecodeError:
+        data = []
+    except FileNotFoundError:
+        data = []
+
+    json_content = json.loads(content)
+    data.append(json_content)
+
+    try:
+        with open(file_path, 'w') as file:
+            json.dump(data, file, indent=2)
+    except PermissionError:
+        message = f"[Error]: Permission denied. Cannot write to '{file_path}'."
+        raise ValueError(message)
+    except FileNotFoundError:
+        message = f"[Error]: The directory for '{file_path}'"
+        message += " does not exist."
+        raise ValueError(message)
+
+
+def read_file(self, file_path: str) -> Any:
+    if not file_path:
+        raise ValueError("[Error]: No file path provided.")
+
+    with open(file_path, 'r') as file:
+        data = file.read()
+    return data
+
+
+def write_json_file(self, file_path: str, data=None) -> None:
+    if not file_path:
+        raise ValueError("[Error]: No file path provided.")
+
+    if not data:
+        raise ValueError(f"Warning: No data provided to write to {file_path}.")
+
+    if not file_path.endswith('.json'):
+        message = f"[Error]: Invalid file extension for '{file_path}'."
+        message += " Only .json is supported."
+        raise ValueError(message)
+
+    try:
+        with (file_path, 'w') as file:
+            file.write(data)
+    except FileNotFoundError:
+        message = f"[Error]: The directory for '{file_path}'"
+        message += " does not exist."
+        raise ValueError(message)
+    except PermissionError:
+        message = f"[Error]: Permission denied. Cannot write to '{file_path}'."
+        raise ValueError(message)
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+
+def validate_json(self, content: str) -> bool:
+    try:
+        json.loads(content)
+        return True
+    except json.JSONDecodeError:
+        return False
+
+
+def softmax(self, data: list) -> list:
+    exp_value = np.exp(data)
+    exp_sum = np.sum(exp_value)
+    return exp_value / exp_sum
