@@ -49,6 +49,12 @@ def file_checker(file_path: str, mode: str):
         raise ValueError(message)
 
 
+def load_json_content(file_path: str) -> Any:
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
+
+
 def read_file(self, file_path: str) -> Any:
     if not file_path:
         raise ValueError("File path is required and cannot be empty.")
