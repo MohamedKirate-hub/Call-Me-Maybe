@@ -11,6 +11,9 @@ ${VENV}:
 
 setup: ${VENV}
 
+mkirate:
+	@export UV_CACHE_DIR=/goinfre/mkirate/.uv-cache
+
 install:
 	@poetry install --no-root
 #	@uv sync --project llm_sdk
