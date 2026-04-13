@@ -36,3 +36,30 @@ other models:
 1: Qwen/Qwen2.5-0.5B-Instruct
 2: HuggingFaceTB/SmolLM2-360M-Instruct
 3: stabilityai/stablelm-2-zephyr-1_6b
+
+
+self.__rules = """
+        - Always include "name", "parameters" and "prompt" as keys.
+        - and "name" must be in function definition.
+        - Do NOT add extra fields.
+        - Do NOT remove required fields.
+        - Use null if a value is missing
+        - If a user request cannot be fulfilled by the provided functions,
+        you MUST set "name" to null and "parameters" to null.
+        - Do NOT try to force a function call if the intent does not match.
+        - "name" must be a function name from the definition or null.
+        - "parameters" must be a dictionary or null.
+        - STRICT RULE: If the user asks for a calculation
+        (like 2-2, 5*5, 2**3,etc.) and there is no EXACT function for
+        that specific math operation, you MUST return "name": null.
+        - Do NOT use 'fn_add_numbers' for subtraction, multiplication,
+        or division.
+        - If a value is missing or no function matches, use null.
+        - Argument types must match the function definition.
+        - Numbers must be numeric (not strings)
+        - Argument types must match the function definition (number, string,
+        boolean, etc.)
+        - Use double quotes for all keys and strings
+        - No trailing commas
+        - Output must start with '{' and end with '}'
+        """

@@ -10,9 +10,6 @@ os.environ['HF_HOME'] = '/goinfre/mkirate/huggingface_cache'
 def main(model_name="Qwen/Qwen3-0.6B") -> None:
     parser = Parser()
     parser.start_parsing()
-    print(f"Function file: {parser.functions_file}")
-    print(f"input file: {parser.input_file}")
-    print(f"output file: {parser.output_file}")
     predictor_model = PredictorModel(model_name, parser.functions_file,
                                      parser.output_file)
     prompts = load_json_content(parser.input_file)

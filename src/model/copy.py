@@ -34,8 +34,21 @@ class PredictorModel:
         - Do NOT add extra fields.
         - Do NOT remove required fields.
         - Use null if a value is missing
+        - If a user request cannot be fulfilled by the provided functions,
+        you MUST set "name" to null and "parameters" to null.
+        - Do NOT try to force a function call if the intent does not match.
+        - "name" must be a function name from the definition or null.
+        - "parameters" must be a dictionary or null.
+        - STRICT RULE: If the user asks for a calculation
+        (like 2-2, 5*5, 2**3,etc.) and there is no EXACT function for
+        that specific math operation, you MUST return "name": null.
+        - Do NOT use 'fn_add_numbers' for subtraction, multiplication,
+        or division.
+        - If a value is missing or no function matches, use null.
+        - Argument types must match the function definition.
         - Numbers must be numeric (not strings)
-        - Argument types must match the function definition (number, string, boolean, etc.)
+        - Argument types must match the function definition (number, string,
+        boolean, etc.)
         - Use double quotes for all keys and strings
         - No trailing commas
         - Output must start with '{' and end with '}'
@@ -55,9 +68,9 @@ class PredictorModel:
         mask = RegexMask(self.__model, self.__regex)
         masked_logits = mask(ids, logits)
 
-        sotmax_logits = softmax(masked_logits)
-        self.next_token = np.argmax(sotmax_logits)
-        # self.next_token = np.argmax(masked_logits)
+        # sotmax_logits = softmax(masked_logits)
+        # self.next_token = np.argmax(sotmax_logits)
+        self.next_token = np.argmax(masked_logits)
         return self.next_token
 
     def decode_next_token(self, next_token: float) -> str:
@@ -124,20 +137,11 @@ Output schema (MUST match exactly):
 Rules:
 {self.__rules}
 
-Example:
+Examples with good prompts:
+{self.__good_prompts}
 
-prompt:
-What is the sum of 2 and 3?
-
-Output:
-{{
-  "prompt": "What is the sum of 2 and 3?",
-  "name": "fn_add_numbers",
-  "parameters": {{
-    "a": 2,
-    "b": 3
-  }}
-}}
+Examples with bad prompts:
+{self.__bad_prompts}
 
 Now process this input:
 

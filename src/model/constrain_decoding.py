@@ -5,6 +5,7 @@ from typing import Any, List
 
 
 class RegexMask:
+    start = 0
     def __init__(self, model, regex_model: regex.compile) -> None:
         self.__start = 0
         self.__model = model
@@ -19,7 +20,7 @@ class RegexMask:
 
     def __call__(self, input_ids, logits) -> List[float]:
         self.start_index = len(input_ids[0]) - 1
-        if self.__start == 0:
+        if RegexMask.start == 0:
             partial_output_str = ''
         else:
             partial_output_str = self.__model.decode(
@@ -39,5 +40,5 @@ class RegexMask:
             mask[token_id] = 0.0
 
         logits = logits + mask
-        self.__start += 1
+        RegexMask.start += 1
         return logits
