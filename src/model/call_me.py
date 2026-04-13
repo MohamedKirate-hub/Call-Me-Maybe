@@ -1,7 +1,7 @@
 from typing import List
 from llm_sdk.llm_sdk import Small_LLM_Model
-from utils import (softmax, save_content, read_file, validate_json)
-from constrain_decoding import RegexMask
+from src.utils import (softmax, save_content, read_file, validate_json)
+from src.model.constrain_decoding import RegexMask
 import numpy as np
 import regex
 
@@ -11,14 +11,16 @@ class PredictorModel:
         self.__model = Small_LLM_Model(model_name)
         self.file_definition = file_definition
         self.file_output = file_output
+        self.bad_examples_path = 'src/prompt_examples/bad_prompts.txt'
+        self.good_examples_path = 'src/prompt_examples/good_prompts.txt'
 
         self.__re_format = r'^\{\s*"prompt"\s*:\s*"[^"]*"\s*,\s*"name"\s*:\s*'
         self.__re_format += r'"[^"]*"\s*,\s*"parameters"\s*:\s*(?P<args>'
         self.__re_format += r'\{[^{}]*\})\s*\}$'
 
         self.__regex = regex.compile(self.__re_format)
-        self.__bad_prompts = read_file('./prompt_examples/bad_prompts.txt')
-        self.__good_prompts = read_file('./prompt_examples/good_prompts.txt')
+        self.__bad_prompts = read_file(self.bad_examples_path)
+        self.__good_prompts = read_file(self.good_examples_path)
         self.__expected_output = """
         {
         "prompt": "string",

@@ -39,5 +39,5 @@ class RegexMask:
             mask[token_id] = 0.0
 
         logits = logits + mask
-        RegexMask.start += 1
+        self.__start += 1
         return logits

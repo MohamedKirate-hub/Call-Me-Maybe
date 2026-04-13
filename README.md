@@ -1,4 +1,4 @@
-python -m uv run python -m src --functions_definition data/input/functions_definition.json --input data/input/function_calling_tests.json --output data/output/function_calls.json
+uv run python -m src --functions_definition data/input/functions_definition.json --input data/input/function_calling_tests.json --output data/output/function_calls.json
 
 links :
 llm: https://martinfowler.com/articles/function-call-LLM.html
@@ -31,3 +31,8 @@ NLP: -> towardsdatascience.com/nlp-illustrated-part-1-text-encoding-41ba06c0f512
 
 -> Books: https://drive.google.com/drive/folders/1jIJMyBOeWiVxLCUUtLvEFEFCnWxbh6cs
 
+
+other models:
+1: Qwen/Qwen2.5-0.5B-Instruct
+2: HuggingFaceTB/SmolLM2-360M-Instruct
+3: stabilityai/stablelm-2-zephyr-1_6b

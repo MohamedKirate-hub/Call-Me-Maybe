@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field, model_validator
-from langdetect import detect, LangDetectException
 from typing import Union
 import json
 from src.utils import file_checker
@@ -71,12 +70,12 @@ class ParseJsonDefinitionContent(BaseModel):
         for key in self.json_content.keys():
             if key == "description":
                 value = self.json_content.get(key)
-                try:
-                    if 'en' not in detect(value):
-                        raise ValueError("Description must be in English")
-                except LangDetectException:
-                    raise ValueError("Description contains no detectable "
-                                     "language.")
+                if not value:
+                    pass
+                if not isinstance(value, str):
+                    pass
+                if value.strip():
+                    pass
 
             if key == "parameters":
                 for k, v in self.json_content[key].items():
@@ -137,13 +136,6 @@ class ParseJsonPrompt(BaseModel):
             raise ValueError("The prompt value must be str.")
         if not prompt_value.strip():
             raise ValueError("Value cannot empty, or whitespace.")
-
-        try:
-            if 'en' not in detect(prompt_value):
-                raise ValueError("Description must be in English")
-        except LangDetectException:
-            raise ValueError("Description contains no detectable "
-                             "language.")
 
         return self
 

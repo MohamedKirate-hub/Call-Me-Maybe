@@ -4,7 +4,7 @@ from typing import Any
 import os
 
 
-def save_content(self, content: str, file_path: str) -> None:
+def save_content(content: str, file_path: str) -> None:
     try:
         with open(file_path, 'r') as file:
             data = json.load(file)
@@ -55,7 +55,7 @@ def load_json_content(file_path: str) -> Any:
     return data
 
 
-def read_file(self, file_path: str) -> Any:
+def read_file(file_path: str) -> Any:
     if not file_path:
         raise ValueError("File path is required and cannot be empty.")
 
@@ -64,7 +64,7 @@ def read_file(self, file_path: str) -> Any:
     return data
 
 
-def write_json_file(self, file_path: str, data=None) -> None:
+def write_json_file(file_path: str, data=None) -> None:
     if not file_path:
         raise ValueError("File path is required and cannot be empty.")
 
@@ -84,7 +84,7 @@ def write_json_file(self, file_path: str, data=None) -> None:
         print(f"An unexpected error occurred: {e}")
 
 
-def validate_json(self, content: str) -> bool:
+def validate_json(content: str) -> bool:
     try:
         json.loads(content)
         return True
@@ -92,7 +92,7 @@ def validate_json(self, content: str) -> bool:
         return False
 
 
-def softmax(self, data: list) -> list:
+def softmax(data: list) -> list:
     exp_value = np.exp(data)
     exp_sum = np.sum(exp_value)
     return exp_value / exp_sum

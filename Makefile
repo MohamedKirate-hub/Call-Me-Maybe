@@ -1,22 +1,9 @@
-VENV=./venv
-PYTHON = ./venv/bin/python
-PYTHON3 = ./venv/bin/python3
-
 FUNCTIONS_DEFINITION_FILE = data/input/functions_definition.json
 INPUT_FILE = data/input/function_calling_tests.json
 OUTPUT_FILE = data/output/function_calls.json
 
-${VENV}:
-	@python -m venv ${VENV}
-
-setup: ${VENV}
-
-mkirate:
-	@export UV_CACHE_DIR=/goinfre/mkirate/.uv-cache
-
 install:
-	@poetry install --no-root
-#	@uv sync --project llm_sdk
+	uv sync
 
 run:
 	@uv run python -m src --functions_definition ${FUNCTIONS_DEFINITION_FILE} \
