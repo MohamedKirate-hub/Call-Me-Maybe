@@ -1,5 +1,7 @@
 from typing import List
+
 from llm_sdk.llm_sdk import Small_LLM_Model
+
 from src.utils import (softmax, save_content, read_file, validate_json,
                        load_json_content)
 from src.model.constrain_decoding import RegexMask

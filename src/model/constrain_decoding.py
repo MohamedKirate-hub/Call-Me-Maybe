@@ -6,6 +6,7 @@ from typing import Any, List
 
 class RegexMask:
     start = 0
+
     def __init__(self, model, regex_model: regex.compile) -> None:
         self.__start = 0
         self.__model = model
