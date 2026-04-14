@@ -1,6 +1,7 @@
 from typing import List
 from llm_sdk.llm_sdk import Small_LLM_Model
-from src.utils import (softmax, save_content, read_file, validate_json)
+from src.utils import (softmax, save_content, read_file, validate_json,
+                       load_json_content)
 from src.model.constrain_decoding import RegexMask
 import numpy as np
 import regex
@@ -25,20 +26,15 @@ class PredictorModel:
         {
         "prompt": "string",
         "name": "string",
-        "parameters": "dictionary"
+        "parameters": {}
         }"""
 
         self.__rules = """
-        - Always include "name", "parameters" and "prompt" as keys.
-        - and "name" must be in function definition.
-        - Do NOT add extra fields.
-        - Do NOT remove required fields.
-        - Use null if a value is missing
-        - Numbers must be numeric (not strings)
-        - Argument types must match the function definition (number, string, boolean, etc.)
-        - Use double quotes for all keys and strings
-        - No trailing commas
-        - Output must start with '{' and end with '}'
+        1. Output ONLY valid JSON.
+        2. No preamble, no explanation, no markdown blocks.
+        3. Keys: "prompt", "name", "parameters".
+        4. "name" must match the function definition.
+        5. Use null for missing values.
         """
 
     def encode(self, prompt: str) -> List:
@@ -57,7 +53,6 @@ class PredictorModel:
 
         sotmax_logits = softmax(masked_logits)
         self.next_token = np.argmax(sotmax_logits)
-        # self.next_token = np.argmax(masked_logits)
         return self.next_token
 
     def decode_next_token(self, next_token: float) -> str:
@@ -74,6 +69,7 @@ class PredictorModel:
             text += next_word
 
             if self.__output_text:
+                print(self.__output_text)
                 if validate_json(self.__output_text):
                     break
 
@@ -93,54 +89,47 @@ class PredictorModel:
         save_content(self.get_output(), self.file_output)
 
     def init_prompt(self, prompt: str) -> str:
+        fdef_summary = ''
+        functions_def = load_json_content(self.file_definition)
+
+        for function in functions_def:
+            name = f'function name: {function["name"]}'
+            desc = f"Description: {function['description']}"
+            parameters = ", ".join(function['parameters'].keys())
+            returns = f"Returns: {function['returns']['type']}"
+
+            fdef_summary += f"{name}\n- {desc}\n- "
+            fdef_summary += f"Params: ({parameters})\n- {returns}\n\n"
 
         model_prompt = f"""
-      You are a function-calling JSON generator.
+      Act as a JSON-only generator. Convert the user input into a
+      function call based on the schema.
 
-Your task:
-- Read the input carefully
-- Select the correct function
-- Extract the required parameters
-- Return ONLY valid JSON
+    ### Function Definition
+    {fdef_summary}
 
-Do NOT output:
-- explanations
-- text
-- comments
-- markdown
-- code blocks
 
-If you output anything other than JSON, it is incorrect.
+    ### Output Schema
+    {self.__expected_output}
 
-Function definition:
-{read_file(self.file_definition)}
+    ### Rules
+    {self.__rules}
 
-Input:
-{prompt}
+    ### EXAMPLE
+    prompt: What is the sum of 2 and 3?
+    Output:
+    {{
+        "prompt": "What is the sum of 2 and 3?",
+        "name": "fn_add_numbers",
+        "parameters": {{
+            "a": 2,
+            "b": 3
+        }}
+    }}
 
-Output schema (MUST match exactly):
-{self.__expected_output}
+    ### User Input
+    {prompt}
 
-Rules:
-{self.__rules}
-
-Example:
-
-prompt:
-What is the sum of 2 and 3?
-
-Output:
-{{
-  "prompt": "What is the sum of 2 and 3?",
-  "name": "fn_add_numbers",
-  "parameters": {{
-    "a": 2,
-    "b": 3
-  }}
-}}
-
-Now process this input:
-
-{{your_input_here}}
+    ### JSON Output
       """
         return model_prompt
