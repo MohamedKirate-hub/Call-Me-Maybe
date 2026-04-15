@@ -11,8 +11,8 @@ class ParsingFiles(BaseModel):
 
     @model_validator(mode='after')
     def check_validation(self) -> 'ParsingFiles':
-        file_checker(self.functions_definition_file, 'w')
-        file_checker(self.input_file, 'w')
+        file_checker(self.functions_definition_file, 'r')
+        file_checker(self.input_file, 'r')
         file_checker(self.output_file, 'r')
         file_checker(self.output_file, 'w')
         return self

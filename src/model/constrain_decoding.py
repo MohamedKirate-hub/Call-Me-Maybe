@@ -20,12 +20,12 @@ class RegexMask:
         return data
 
     def __call__(self, input_ids, logits) -> List[float]:
-        self.start_index = len(input_ids[0]) - 1
+        self.start_index = len(input_ids) - 1
         if RegexMask.start == 0:
             partial_output_str = ''
         else:
             partial_output_str = self.__model.decode(
-                input_ids[0, self.start_index]
+                input_ids[self.start_index]
             )
 
         allowed_tokens_ids = []

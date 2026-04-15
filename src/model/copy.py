@@ -14,12 +14,15 @@ class PredictorModel:
         self.__model = Small_LLM_Model(model_name)
         self.file_definition = file_definition
         self.file_output = file_output
+        self.ids = []
 
         self.__re_format = r'^\{\s*"prompt"\s*:\s*"[^"]*"\s*,\s*"name"\s*:\s*'
         self.__re_format += r'"[^"]*"\s*,\s*"parameters"\s*:\s*(?P<args>'
         self.__re_format += r'\{[^{}]*\})\s*\}$'
 
         self.__regex = regex.compile(self.__re_format)
+        self.__bad_prompts = read_file(self.bad_examples_path)
+        self.__good_prompts = read_file(self.good_examples_path)
         self.__expected_output = """
         {
         "prompt": "string",
@@ -41,9 +44,10 @@ class PredictorModel:
     def decode(self, ids: List) -> str:
         return self.__model.decode(ids)
 
-    def predict_next_token(self, ids: list) -> float:
+    def predict_next_token(self, prompt: str) -> float:
         self.next_token = 0
-        logits = self.__model.get_logits_from_input_ids(ids)
+        ids = self.__model.encode(prompt)
+        logits = self.__model.get_logits_from_input_ids(ids.tolist()[0])
 
         mask = RegexMask(self.__model, self.__regex)
         masked_logits = mask(ids, logits)
@@ -56,14 +60,13 @@ class PredictorModel:
 
     def generate_text(self, prompt: str) -> str:
         text = self.init_prompt(prompt)
-        self.ids = self.__model.encode(text)[0].tolist()
         adding_to_string = False
         self.__output_text = ""
 
         while True:
-            next_token = self.predict_next_token(self.ids)
-            self.ids.append(next_token)
+            next_token = self.predict_next_token(text)
             next_word = self.decode_next_token(next_token)
+            text += next_word
 
             if validate_json(self.__output_text):
                 break
@@ -74,7 +77,6 @@ class PredictorModel:
             if '{' in next_word and not adding_to_string:
                 self.__output_text += next_word
                 adding_to_string = True
-            print(self.__output_text)
         return self.__output_text
 
     def get_output(self) -> str:

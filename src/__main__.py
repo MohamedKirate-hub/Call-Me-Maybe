@@ -15,9 +15,12 @@ def main(model_name="Qwen/Qwen3-0.6B") -> None:
     prompts = load_json_content(parser.input_file)
     if not isinstance(prompts, list):
         prompts = [prompts]
+    from datetime import datetime
+    start_time = datetime.now().minute
     for prompt in prompts:
         predictor_model.execute(prompt)
         print(predictor_model.get_output())
+    print(datetime.now().minute - start_time)
 
 
 if __name__ == "__main__":
@@ -25,5 +28,5 @@ if __name__ == "__main__":
         main()
     except ValidationError as e:
         print(f"[ERROR]: {e.errors()[0]['msg'].strip('Value error, ')}")
-    except Exception as e:
-        print(f"[ERROR]: {e}")
+    # except Exception as e:
+    #     print(f"[ERROR]: {e}")
