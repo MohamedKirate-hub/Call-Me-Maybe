@@ -1,10 +1,8 @@
-from pydantic import ValidationError
-from src.model.call_me import PredictorModel
-from src.parsing.parsing import Parser
 from src.utils import load_json_content
-import os
-
-os.environ['HF_HOME'] = '/goinfre/mkirate/huggingface_cache'
+from pydantic import ValidationError
+from src.parsing.parsing import Parser
+from src.model.call_me import PredictorModel
+from datetime import datetime
 
 
 def main(model_name="Qwen/Qwen3-0.6B") -> None:
@@ -15,12 +13,11 @@ def main(model_name="Qwen/Qwen3-0.6B") -> None:
     prompts = load_json_content(parser.input_file)
     if not isinstance(prompts, list):
         prompts = [prompts]
-    from datetime import datetime
-    start_time = datetime.now().minute
+
+    start_time = datetime.now()
     for prompt in prompts:
         predictor_model.execute(prompt)
-        print(predictor_model.get_output())
-    print(datetime.now().minute - start_time)
+    print(datetime.now() - start_time)
 
 
 if __name__ == "__main__":

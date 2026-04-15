@@ -2,13 +2,13 @@ from typing import List
 
 from llm_sdk.llm_sdk import Small_LLM_Model
 
-from src.utils import (save_content, read_file, validate_json,
+from src.utils import (save_content, validate_json,
                        load_json_content)
 from src.model.constrain_decoding import RegexMask
 import numpy as np
 import regex
 
-
+# 0:09:11.549487
 class PredictorModel:
     def __init__(self, model_name, file_definition, file_output) -> None:
         self.__model = Small_LLM_Model(model_name)
@@ -41,7 +41,7 @@ class PredictorModel:
     def decode(self, ids: List) -> str:
         return self.__model.decode(ids)
 
-    def predict_next_token(self, ids: list) -> float:
+    def predict_next_token(self, ids: List) -> float:
         self.next_token = 0
         logits = self.__model.get_logits_from_input_ids(ids)
 

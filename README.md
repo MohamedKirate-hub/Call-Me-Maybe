@@ -63,3 +63,10 @@ self.__rules = """
         - No trailing commas
         - Output must start with '{' and end with '}'
         """
+
+
+export HF_HOME="/goinfre/hiafif/.hf"
+export TRANSFORMERS_CACHE="/goinfre/hiafif/.hf/transformers"
+export HUGGINGFACE_HUB_CACHE="/goinfre/hiafif/.hf/hub
+mkdir -p /goinfre/hiafif/.hf/transformers
+mkdir -p /goinfre/hiafif/.hf/hub

@@ -1,7 +1,18 @@
-import json
-import numpy as np
+from pathlib import Path
 from typing import Any
+import numpy as np
+import json
 import os
+
+os.environ['UV_CACHE_DIR'] = '/goinfre/mkirate/.uv-cache'
+os.environ['HF_HOME'] = '/goinfre/mkirate/huggingface_cache'
+os.environ['TRANSFORMERS_CACHE'] = '/goinfre/mkirate/huggingface_cache/transformers'
+os.environ['HUGGINGFACE_HUB_CACHE'] = '/goinfre/mkirate/huggingface_cache/hub'
+
+Path('/goinfre/mkirate/huggingface_cache/transformers').mkdir(parents=True,
+                                                              exist_ok=True)
+Path('/goinfre/mkirate/huggingface_cache/hub').mkdir(parents=True,
+                                                     exist_ok=True)
 
 
 def save_content(content: str, file_path: str) -> None:

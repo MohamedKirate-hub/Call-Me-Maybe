@@ -1,28 +1,23 @@
 from typing import List
-
 from llm_sdk.llm_sdk import Small_LLM_Model
-
-from src.utils import (save_content, read_file, validate_json,
+from src.utils import (save_content, validate_json,
                        load_json_content)
 from src.model.constrain_decoding import RegexMask
 import numpy as np
 import regex
 
-
+# 0:09:10.167942
 class PredictorModel:
     def __init__(self, model_name, file_definition, file_output) -> None:
         self.__model = Small_LLM_Model(model_name)
         self.file_definition = file_definition
         self.file_output = file_output
-        self.ids = []
 
         self.__re_format = r'^\{\s*"prompt"\s*:\s*"[^"]*"\s*,\s*"name"\s*:\s*'
         self.__re_format += r'"[^"]*"\s*,\s*"parameters"\s*:\s*(?P<args>'
         self.__re_format += r'\{[^{}]*\})\s*\}$'
 
         self.__regex = regex.compile(self.__re_format)
-        self.__bad_prompts = read_file(self.bad_examples_path)
-        self.__good_prompts = read_file(self.good_examples_path)
         self.__expected_output = """
         {
         "prompt": "string",
@@ -45,15 +40,14 @@ class PredictorModel:
         return self.__model.decode(ids)
 
     def predict_next_token(self, prompt: str) -> float:
-        self.next_token = 0
         ids = self.__model.encode(prompt)
         logits = self.__model.get_logits_from_input_ids(ids.tolist()[0])
 
         mask = RegexMask(self.__model, self.__regex)
         masked_logits = mask(ids, logits)
 
-        self.next_token = np.argmax(masked_logits)
-        return self.next_token
+        next_token = np.argmax(masked_logits)
+        return next_token
 
     def decode_next_token(self, next_token: float) -> str:
         return self.__model.decode(next_token)
@@ -79,12 +73,9 @@ class PredictorModel:
                 adding_to_string = True
         return self.__output_text
 
-    def get_output(self) -> str:
-        return self.__output_text
-
     def execute(self, prompt: str) -> None:
-        self.generate_text(prompt)
-        save_content(self.get_output(), self.file_output)
+        result = self.generate_text(prompt)
+        save_content(result, self.file_output)
 
     def init_prompt(self, prompt: str) -> str:
         fdef_summary = ''
