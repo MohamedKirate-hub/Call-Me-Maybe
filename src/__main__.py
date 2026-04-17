@@ -26,5 +26,5 @@ if __name__ == "__main__":
         main()
     except ValidationError as e:
         print(f"[ERROR]: {e.errors()[0]['msg'].strip('Value error, ')}")
-    except Exception as e:
-        print(f"[ERROR]: {e}")
+    # except Exception as e:
+    #     print(f"[ERROR]: {e}")

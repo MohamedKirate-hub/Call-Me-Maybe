@@ -1,5 +1,4 @@
 from typing import List
-
 from llm_sdk.llm_sdk import Small_LLM_Model
 
 from src.utils import (save_content, validate_json,
@@ -11,22 +10,13 @@ import time
 import pandas as pd
 
 
-# 0:09:11.549487
 class PredictorModel:
     def __init__(self, model_name, file_definition, file_output) -> None:
         self.__model = Small_LLM_Model(model_name)
         self.file_definition = file_definition
         self.file_output = file_output
         init_data = {
-            "init_prompt": 0.0,
-            "encode_prompt": 0.0,
-            "append_ids": 0.0,
-            "decode_next": 0.0,
-            "validate_json": 0.0,
-            "adding_next": 0.0,
-            "saving_result": 0.0,
             "logits": 0.0,
-            "masking": 0.0
         }
         self.data = pd.DataFrame([init_data])
         self.__re_format = r'^\{\s*"prompt"\s*:\s*"[^"]*"\s*,\s*"name"\s*:\s*'
@@ -63,15 +53,12 @@ class PredictorModel:
         max_tokens = 290
         if len(ids) > max_tokens:
             ids = ids[-max_tokens:]
+
         logits = self.__model.get_logits_from_input_ids(ids)
         elapsed = time.perf_counter() - start_time
         self.data.loc[0, "logits"] += float(elapsed / 60)
 
-
-        start_time = time.perf_counter()
         masked_logits = self.mask(ids, logits)
-        elapsed = time.perf_counter() - start_time
-        self.data.loc[0, "masking"] += float(elapsed / 60)
 
         self.next_token = np.argmax(masked_logits)
         return self.next_token
@@ -80,73 +67,30 @@ class PredictorModel:
         return self.__model.decode(next_token)
 
     def generate_text(self, prompt: str) -> str:
-
-        start_time = time.perf_counter()
         text = self.init_prompt(prompt)
-        elapsed = time.perf_counter() - start_time
-        self.data.loc[0, "init_prompt"] += float(elapsed / 60)
-
-        start_time = time.perf_counter()
         self.ids = self.__model.encode(text)[0].tolist()
-        elapsed = time.perf_counter() - start_time
-        self.data.loc[0, "encode_prompt"] += float(elapsed / 60)
         adding_to_string = False
         self.__output_text = ""
 
-        self.consume_time = {
-            'append_ids': 0.0,
-            'decode_next': 0.0,
-            'validate_json': 0.0,
-            'adding_next': 0.0,
-            'logits': 0.0,
-            "masking": 0.0
-        }
-
         while True:
             next_token = self.predict_next_token(self.ids)
-            start_time = time.perf_counter()
             self.ids.append(next_token)
-            elapsed = time.perf_counter() - start_time
-            self.consume_time["append_ids"] += float(elapsed / 60)
-
-            start_time = time.perf_counter()
             next_word = self.decode_next_token(next_token)
-            elapsed = time.perf_counter() - start_time
-            self.consume_time["decode_next"] += float(elapsed / 60)
 
-            start_time = time.perf_counter()
-            is_valid = validate_json(self.__output_text)
-            elapsed = time.perf_counter() - start_time
-            self.consume_time["validate_json"] += float(elapsed / 60)
-            if is_valid:
-                self.data.loc[0, "append_ids"] = self.consume_time.get("append_ids", 0)
-                self.data.loc[0, "decode_next"] = self.consume_time.get("decode_next", 0)
-                self.data.loc[0, "validate_json"] = self.consume_time.get("validate_json", 0)
-                self.data.loc[0, "adding_next"] = self.consume_time.get("adding_next", 0)
+            if validate_json(self.__output_text):
                 break
 
-
             if adding_to_string:
-                start_time = time.perf_counter()
                 self.__output_text += next_word
-                elapsed = time.perf_counter() - start_time
-                self.consume_time["adding_next"] += float(elapsed / 60)
 
             if '{' in next_word and not adding_to_string:
                 self.__output_text += next_word
                 adding_to_string = True
         return self.__output_text
 
-    def get_output(self) -> str:
-        return self.__output_text
-
     def execute(self, prompt: str) -> None:
-        self.generate_text(prompt)
-        start_time = time.perf_counter()
-        save_content(self.get_output(), self.file_output)
-        elapsed = time.perf_counter() - start_time
-        self.data.loc[0, "saving_result"] += float(elapsed / 60)
-        print("--" * 20, end='\n\n\n\n\n')
+        result = self.generate_text(prompt)
+        save_content(result, self.file_output)
 
     def init_prompt(self, prompt: str) -> str:
         fdef_summary = ''
