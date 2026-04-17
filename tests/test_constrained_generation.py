@@ -102,14 +102,14 @@ class TestConstrainedGeneration(unittest.TestCase):
         predictor._PredictorModel__model = _ModelNoOutput()
         predictor.mask = _MaskReset()
         predictor._PredictorModel__max_new_tokens = 3
-        predictor._PredictorModel__regex = regex.compile(
-            r'^\{\s*"prompt"\s*:\s*"[^"]*"\s*,\s*"name"\s*:\s*"[^"]*"\s*,\s*"parameters"\s*:\s*(?P<args>\{[^{}]*\})\s*\}$'
-        )
+        predictor._PredictorModel__regex = regex.compile(r"^$")
         predictor.init_prompt = lambda prompt: "seed"
         predictor.predict_next_token = lambda ids: 7
         predictor.decode_next_token = lambda token: "x"
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError, "Could not produce a valid JSON output within max_new_tokens."
+        ):
             predictor.generate_text({"prompt": "hello"})
 
 

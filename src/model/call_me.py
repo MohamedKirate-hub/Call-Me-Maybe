@@ -1,7 +1,7 @@
-from typing import List
+from typing import List, Union
 from llm_sdk.llm_sdk import Small_LLM_Model
 
-from src.utils import (save_content, validate_json,
+from src.utils import (save_content,
                        load_json_content)
 from src.model.constrain_decoding import RegexMask
 import numpy as np
@@ -68,7 +68,7 @@ class PredictorModel:
     def decode_next_token(self, next_token: float) -> str:
         return self.__model.decode(next_token)
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: Union[str, dict]) -> str:
         text = self.init_prompt(prompt)
         self.ids = self.__model.encode(text)[0].tolist()
         self.mask.reset(len(self.ids))
@@ -91,14 +91,23 @@ class PredictorModel:
         raise ValueError("Could not produce a valid JSON output within max_new_tokens.")
 
     def __valid_output(self, content: str) -> bool:
-        return validate_json(content) and self.__regex.fullmatch(content) is not None
+        if self.__regex.fullmatch(content) is None:
+            return False
+        try:
+            json.loads(content)
+            return True
+        except json.JSONDecodeError:
+            return False
 
-    def __extract_prompt(self, prompt: str) -> str:
+    def __extract_prompt(self, prompt: Union[str, dict]) -> str:
         if isinstance(prompt, dict):
-            return str(prompt.get("prompt", "")).strip()
+            prompt_value = prompt.get("prompt")
+            if isinstance(prompt_value, str) and prompt_value.strip():
+                return prompt_value.strip()
+            return str(prompt).strip()
         return str(prompt).strip()
 
-    def __fallback_output(self, prompt: str) -> str:
+    def __fallback_output(self, prompt: Union[str, dict]) -> str:
         prompt_text = self.__extract_prompt(prompt)
         functions_def = load_json_content(self.file_definition)
         if not isinstance(functions_def, list):
@@ -112,10 +121,10 @@ class PredictorModel:
             "parameters": {}
         })
 
-    def __sanitize_output(self, result: str, prompt: str) -> str:
+    def __sanitize_output(self, result: str, prompt: Union[str, dict]) -> str:
         try:
             payload = json.loads(result)
-        except Exception:
+        except (json.JSONDecodeError, TypeError):
             return self.__fallback_output(prompt)
 
         if not isinstance(payload, dict):
@@ -124,7 +133,13 @@ class PredictorModel:
         functions_def = load_json_content(self.file_definition)
         if not isinstance(functions_def, list):
             functions_def = [functions_def]
-        function_names = [f.get("name", "") for f in functions_def if isinstance(f, dict)]
+        function_names = []
+        for function in functions_def:
+            if not isinstance(function, dict):
+                continue
+            function_name = function.get("name", "")
+            if isinstance(function_name, str) and function_name.strip():
+                function_names.append(function_name)
         fallback_name = function_names[0] if function_names else ""
 
         prompt_text = payload.get("prompt")
@@ -146,7 +161,7 @@ class PredictorModel:
         }
         return json.dumps(sanitized)
 
-    def execute(self, prompt: str) -> None:
+    def execute(self, prompt: Union[str, dict]) -> None:
         try:
             result = self.generate_text(prompt)
         except ValueError:
@@ -154,7 +169,7 @@ class PredictorModel:
         result = self.__sanitize_output(result, prompt)
         save_content(result, self.file_output)
 
-    def init_prompt(self, prompt: str) -> str:
+    def init_prompt(self, prompt: Union[str, dict]) -> str:
         fdef_summary = ''
         functions_def = load_json_content(self.file_definition)
 

@@ -25,7 +25,7 @@ class RegexMask:
     def reset(self, start_index: int) -> None:
         self.__start_index = start_index
 
-    def __call__(self, input_ids, logits) -> List[float]:
+    def __call__(self, input_ids, logits) -> np.ndarray | List[float]:
         partial_output_str = self.__model.decode(input_ids[self.__start_index:])
 
         logits_np = np.array(logits, dtype=np.float64)
@@ -33,6 +33,7 @@ class RegexMask:
             return logits
 
         k = min(self.__top_k, logits_np.size)
+        # argpartition gets top-k in O(n) average time without fully sorting.
         candidate_ids = np.argpartition(logits_np, -k)[-k:]
 
         allowed_tokens_ids = []
