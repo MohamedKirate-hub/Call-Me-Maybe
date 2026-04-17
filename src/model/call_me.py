@@ -8,6 +8,7 @@ import numpy as np
 import regex
 import time
 import pandas as pd
+import json
 
 
 class PredictorModel:
@@ -25,6 +26,7 @@ class PredictorModel:
 
         self.__regex = regex.compile(self.__re_format)
         self.mask = RegexMask(self.__model, self.__regex)
+        self.__max_new_tokens = 256
         self.__expected_output = """
         {
         "prompt": "string",
@@ -69,16 +71,14 @@ class PredictorModel:
     def generate_text(self, prompt: str) -> str:
         text = self.init_prompt(prompt)
         self.ids = self.__model.encode(text)[0].tolist()
+        self.mask.reset(len(self.ids))
         adding_to_string = False
         self.__output_text = ""
 
-        while True:
+        for _ in range(self.__max_new_tokens):
             next_token = self.predict_next_token(self.ids)
             self.ids.append(next_token)
             next_word = self.decode_next_token(next_token)
-
-            if validate_json(self.__output_text):
-                break
 
             if adding_to_string:
                 self.__output_text += next_word
@@ -86,10 +86,72 @@ class PredictorModel:
             if '{' in next_word and not adding_to_string:
                 self.__output_text += next_word
                 adding_to_string = True
-        return self.__output_text
+            if adding_to_string and self.__valid_output(self.__output_text):
+                return self.__output_text
+        raise ValueError("Could not produce a valid JSON output within max_new_tokens.")
+
+    def __valid_output(self, content: str) -> bool:
+        return validate_json(content) and self.__regex.fullmatch(content) is not None
+
+    def __extract_prompt(self, prompt: str) -> str:
+        if isinstance(prompt, dict):
+            return str(prompt.get("prompt", "")).strip()
+        return str(prompt).strip()
+
+    def __fallback_output(self, prompt: str) -> str:
+        prompt_text = self.__extract_prompt(prompt)
+        functions_def = load_json_content(self.file_definition)
+        if not isinstance(functions_def, list):
+            functions_def = [functions_def]
+        function_name = ""
+        if functions_def:
+            function_name = functions_def[0].get("name", "")
+        return json.dumps({
+            "prompt": prompt_text,
+            "name": function_name,
+            "parameters": {}
+        })
+
+    def __sanitize_output(self, result: str, prompt: str) -> str:
+        try:
+            payload = json.loads(result)
+        except Exception:
+            return self.__fallback_output(prompt)
+
+        if not isinstance(payload, dict):
+            return self.__fallback_output(prompt)
+
+        functions_def = load_json_content(self.file_definition)
+        if not isinstance(functions_def, list):
+            functions_def = [functions_def]
+        function_names = [f.get("name", "") for f in functions_def if isinstance(f, dict)]
+        fallback_name = function_names[0] if function_names else ""
+
+        prompt_text = payload.get("prompt")
+        if not isinstance(prompt_text, str) or not prompt_text.strip():
+            prompt_text = self.__extract_prompt(prompt)
+
+        function_name = payload.get("name")
+        if not isinstance(function_name, str) or function_name not in function_names:
+            function_name = fallback_name
+
+        parameters = payload.get("parameters")
+        if not isinstance(parameters, dict):
+            parameters = {}
+
+        sanitized = {
+            "prompt": prompt_text,
+            "name": function_name,
+            "parameters": parameters
+        }
+        return json.dumps(sanitized)
 
     def execute(self, prompt: str) -> None:
-        result = self.generate_text(prompt)
+        try:
+            result = self.generate_text(prompt)
+        except ValueError:
+            result = self.__fallback_output(prompt)
+        result = self.__sanitize_output(result, prompt)
         save_content(result, self.file_output)
 
     def init_prompt(self, prompt: str) -> str:
