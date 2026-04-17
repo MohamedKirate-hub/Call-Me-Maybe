@@ -15,8 +15,9 @@ def main(model_name="Qwen/Qwen3-0.6B") -> None:
         prompts = [prompts]
 
     start_time = datetime.now()
-    for prompt in prompts:
+    for i, prompt in enumerate(prompts, 1):
         predictor_model.execute(prompt)
+        predictor_model.data.to_csv(f"timings{i}.csv", index=False)
     print(datetime.now() - start_time)
 
 
@@ -25,5 +26,5 @@ if __name__ == "__main__":
         main()
     except ValidationError as e:
         print(f"[ERROR]: {e.errors()[0]['msg'].strip('Value error, ')}")
-    # except Exception as e:
-    #     print(f"[ERROR]: {e}")
+    except Exception as e:
+        print(f"[ERROR]: {e}")

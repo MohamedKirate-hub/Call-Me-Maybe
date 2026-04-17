@@ -1,5 +1,3 @@
-uv run python -m src --functions_definition data/input/functions_definition.json --input data/input/function_calling_tests.json --output data/output/function_calls.json
-
 links :
 llm: https://martinfowler.com/articles/function-call-LLM.html
 uv: https://medium.com/tr-labs-ml-engineering-blog/using-uv-for-python-development-part-1-making-your-python-dev-experience-much-faster-da4928704097
@@ -38,34 +36,12 @@ other models:
 3: stabilityai/stablelm-2-zephyr-1_6b
 
 
-self.__rules = """
-        - Always include "name", "parameters" and "prompt" as keys.
-        - and "name" must be in function definition.
-        - Do NOT add extra fields.
-        - Do NOT remove required fields.
-        - Use null if a value is missing
-        - If a user request cannot be fulfilled by the provided functions,
-        you MUST set "name" to null and "parameters" to null.
-        - Do NOT try to force a function call if the intent does not match.
-        - "name" must be a function name from the definition or null.
-        - "parameters" must be a dictionary or null.
-        - STRICT RULE: If the user asks for a calculation
-        (like 2-2, 5*5, 2**3,etc.) and there is no EXACT function for
-        that specific math operation, you MUST return "name": null.
-        - Do NOT use 'fn_add_numbers' for subtraction, multiplication,
-        or division.
-        - If a value is missing or no function matches, use null.
-        - Argument types must match the function definition.
-        - Numbers must be numeric (not strings)
-        - Argument types must match the function definition (number, string,
-        boolean, etc.)
-        - Use double quotes for all keys and strings
-        - No trailing commas
-        - Output must start with '{' and end with '}'
-        """
+dependencies
+export UV_CACHE_DIR = '/goinfre/mkirate/.uv-cache'
 
 
-export HF_HOME="/goinfre/hiafif/.hf"
+model
+export HF_HOME="/goinfre/mkiarte/.hf"
 export TRANSFORMERS_CACHE="/goinfre/hiafif/.hf/transformers"
 export HUGGINGFACE_HUB_CACHE="/goinfre/hiafif/.hf/hub
 mkdir -p /goinfre/hiafif/.hf/transformers
