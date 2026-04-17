@@ -1,13 +1,14 @@
-from typing import List
+from typing import List, Union
 from llm_sdk.llm_sdk import Small_LLM_Model
 
-from src.utils import (save_content, validate_json,
+from src.utils import (save_content,
                        load_json_content)
 from src.model.constrain_decoding import RegexMask
 import numpy as np
 import regex
 import time
 import pandas as pd
+import json
 
 
 class PredictorModel:
@@ -25,6 +26,7 @@ class PredictorModel:
 
         self.__regex = regex.compile(self.__re_format)
         self.mask = RegexMask(self.__model, self.__regex)
+        self.__max_new_tokens = 256
         self.__expected_output = """
         {
         "prompt": "string",
@@ -66,19 +68,17 @@ class PredictorModel:
     def decode_next_token(self, next_token: float) -> str:
         return self.__model.decode(next_token)
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: Union[str, dict]) -> str:
         text = self.init_prompt(prompt)
         self.ids = self.__model.encode(text)[0].tolist()
+        self.mask.reset(len(self.ids))
         adding_to_string = False
         self.__output_text = ""
 
-        while True:
+        for _ in range(self.__max_new_tokens):
             next_token = self.predict_next_token(self.ids)
             self.ids.append(next_token)
             next_word = self.decode_next_token(next_token)
-
-            if validate_json(self.__output_text):
-                break
 
             if adding_to_string:
                 self.__output_text += next_word
@@ -86,13 +86,90 @@ class PredictorModel:
             if '{' in next_word and not adding_to_string:
                 self.__output_text += next_word
                 adding_to_string = True
-        return self.__output_text
+            if adding_to_string and self.__valid_output(self.__output_text):
+                return self.__output_text
+        raise ValueError("Could not produce a valid JSON output within max_new_tokens.")
 
-    def execute(self, prompt: str) -> None:
-        result = self.generate_text(prompt)
+    def __valid_output(self, content: str) -> bool:
+        if self.__regex.fullmatch(content) is None:
+            return False
+        try:
+            json.loads(content)
+            return True
+        except json.JSONDecodeError:
+            return False
+
+    def __extract_prompt(self, prompt: Union[str, dict]) -> str:
+        if isinstance(prompt, dict):
+            prompt_value = prompt.get("prompt")
+            if isinstance(prompt_value, str) and prompt_value.strip():
+                return prompt_value.strip()
+            return str(prompt).strip()
+        return str(prompt).strip()
+
+    def __fallback_output(self, prompt: Union[str, dict]) -> str:
+        prompt_text = self.__extract_prompt(prompt)
+        functions_def = load_json_content(self.file_definition)
+        if not isinstance(functions_def, list):
+            functions_def = [functions_def]
+        function_name = ""
+        if functions_def:
+            function_name = functions_def[0].get("name", "")
+        return json.dumps({
+            "prompt": prompt_text,
+            "name": function_name,
+            "parameters": {}
+        })
+
+    def __sanitize_output(self, result: str, prompt: Union[str, dict]) -> str:
+        try:
+            payload = json.loads(result)
+        except (json.JSONDecodeError, TypeError):
+            return self.__fallback_output(prompt)
+
+        if not isinstance(payload, dict):
+            return self.__fallback_output(prompt)
+
+        functions_def = load_json_content(self.file_definition)
+        if not isinstance(functions_def, list):
+            functions_def = [functions_def]
+        function_names = []
+        for function in functions_def:
+            if not isinstance(function, dict):
+                continue
+            function_name = function.get("name", "")
+            if isinstance(function_name, str) and function_name.strip():
+                function_names.append(function_name)
+        fallback_name = function_names[0] if function_names else ""
+
+        prompt_text = payload.get("prompt")
+        if not isinstance(prompt_text, str) or not prompt_text.strip():
+            prompt_text = self.__extract_prompt(prompt)
+
+        function_name = payload.get("name")
+        if not isinstance(function_name, str) or function_name not in function_names:
+            function_name = fallback_name
+
+        parameters = payload.get("parameters")
+        if not isinstance(parameters, dict):
+            parameters = {}
+
+        sanitized = {
+            "prompt": prompt_text,
+            "name": function_name,
+            "parameters": parameters
+        }
+        return json.dumps(sanitized)
+
+    def execute(self, prompt: Union[str, dict]) -> None:
+        try:
+            result = self.generate_text(prompt)
+        except ValueError:
+            result = self.__fallback_output(prompt)
+        result = self.__sanitize_output(result, prompt)
         save_content(result, self.file_output)
 
-    def init_prompt(self, prompt: str) -> str:
+    def init_prompt(self, prompt: Union[str, dict]) -> str:
         fdef_summary = ''
         functions_def = load_json_content(self.file_definition)
 
