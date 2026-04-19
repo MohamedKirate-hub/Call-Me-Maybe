@@ -86,6 +86,7 @@ class PredictorModel:
             if '{' in next_word and not adding_to_string:
                 self.__output_text += next_word
                 adding_to_string = True
+            print(self.__output_text)
         return self.__output_text
 
     def execute(self, prompt: str) -> None:

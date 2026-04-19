@@ -42,6 +42,7 @@ export UV_CACHE_DIR = '/goinfre/mkirate/.uv-cache'
 
 model
 export HF_HOME="/goinfre/mkiarte/.hf"
+
 export TRANSFORMERS_CACHE="/goinfre/hiafif/.hf/transformers"
 export HUGGINGFACE_HUB_CACHE="/goinfre/hiafif/.hf/hub
 mkdir -p /goinfre/hiafif/.hf/transformers
